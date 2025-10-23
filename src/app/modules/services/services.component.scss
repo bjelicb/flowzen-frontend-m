@@ -1,0 +1,71 @@
+.services-table {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, .5);
+    background-color: #2b2b2b;
+    border-radius: 12px;
+
+
+    mat-card-header {
+        background: linear-gradient(60deg,
+                #f72585,
+                #7209b7,
+                #3a0ca3,
+                #4361ee,
+                #f72585);
+        background-size: 300% 300%;
+        animation: gradientPan 70s ease infinite;
+        padding: 1rem;
+        margin: 1rem;
+        border-radius: 25px;
+    }
+
+    mat-card {
+        height: 100%;
+    }
+ 
+    mat-card-title {
+        margin-bottom: 10px;
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+
+        mat-icon {
+            margin-right: 10px;
+        }
+    }
+
+    mat-card-subtitle {
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .custom-row,
+    .mat-row {
+        transition: background-color 150ms ease;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+        }
+    }
+}
+
+.filter-column>mat-card {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, .5);
+    background-color: #2b2b2b;
+    border-radius: 12px;
+    height: 100%;
+
+    mat-card-title {
+        margin-bottom: 10px;
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+
+        mat-icon {
+            margin-right: 10px;
+        }
+    }
+}

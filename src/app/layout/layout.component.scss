@@ -1,0 +1,61 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: auto;
+    /* Prevent scrolling on the entire page */
+}
+
+
+.logout-btn {
+    width: 100%;
+    transition: 0.3s ease-in-out;
+
+    &:hover {
+        transform: scale(1.05);
+    }
+}
+
+.menu-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 0px 12px;
+}
+
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    /* match your toolbar height */
+    z-index: 1000;
+    /* above everything else */
+}
+
+.main-content {
+    margin-top: 64px;
+}
+
+.nav-btn {
+    /* smooth zoom */
+    transition: transform 0.15s ease-in-out;
+}
+
+.nav-btn:hover {
+    transform: scale(1.2);
+}
+
+/* highlight “active” state if you like */
+.nav-btn.active mat-icon {
+    color: #d16aff;
+}
+
+
+.app-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #d16aff;
+}

@@ -1,0 +1,499 @@
+:host {
+  display: block;
+  overflow: hidden;
+}
+
+.title {
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: center;
+
+  mat-icon {
+    margin-right: 10px;
+  }
+}
+
+.appointments-container {
+  width: 100%;
+  margin: 0 auto;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  box-shadow: none;
+  background-color: #232323;
+}
+
+.toolbar-custom {
+  position: relative;
+  height: 64px;
+  padding: 0 40px;
+  margin-top: 20px;
+  background: transparent;
+  overflow: hidden;
+  display: flex;
+  justify-content: center; /* inicijalno centrirano */
+  align-items: center;
+  animation: slideIn 0.5s ease;
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(100px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+.toolbar-item {
+  transform: translateY(-50%);
+  margin-top: 19px;
+}
+
+.title-container {
+  transform: translateX(-50%) translateY(-50%);
+  margin-bottom: 20px;
+}
+
+.facility-container {
+  transform: translateX(-50%) translateY(-50%);
+  margin-right: 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.work-hours-display {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #ff0066;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  background-color: rgba(255, 0, 102, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 0, 102, 0.3);
+  margin-bottom: 20px;
+  
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.facility-selector {
+  width: 200px;
+}
+
+
+.schedule-grid {
+  margin: 20px;
+  border: 2px solid #8c0055;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.5s ease;
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .grid-header {
+    display: flex;
+    flex-direction: row;
+    background-color: transparent;
+    padding: 8px 0;
+    // border-bottom: 1px solid rgba(204, 204, 204, 0.25);
+    
+    .time-header-cell {
+      width: 109px;
+    }
+    
+    .employee-header-cell {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-left: 1px solid #ccc;
+      padding: 4px;
+      
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+      
+      .employee-name {
+        font-weight: 500;
+      }
+    }
+  }
+  
+  .grid-body {
+    display: flex;
+    position: relative;
+    // height: 1020px;
+    background: transparent;
+    
+    .horizontal-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1;
+      pointer-events: none;
+      
+      .horizontal-line {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background-color: #ccc;
+        opacity: 0.3;
+      }
+    }
+    
+    .time-column {
+      width: 109px;
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      border-right: 1px solid #ccc;
+
+      .time-cell {
+        position: absolute;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-weight: 500;
+        // height: 18px;
+        line-height: 20px;
+        pointer-events: none;
+        z-index: 3;
+      }
+    }
+    
+    .employee-columns {
+      flex: 1;
+      display: flex;
+      position: relative;
+      z-index: 2;
+      
+      .employee-column {
+        flex: 1;
+        position: relative;
+        border-left: 1px solid rgba(204, 204, 204, 0.25);
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+
+        .time-slot {
+          flex: 0 0 auto;
+          height: calc(100% / 57); // 57 slotova
+          width: 100%;
+          border-bottom: 1px solid transparent;
+          box-sizing: border-box;
+          cursor: pointer;
+          background: transparent;
+          transition: background 0.2s;
+          z-index: 2;
+          padding: 0;
+          margin: 0;
+          line-height: 1;
+        }
+      }
+      .employee-column.not-working {
+        background-color: #333;
+        color: #fff;         
+        opacity: 0.8; 
+        cursor: not-allowed;
+        border-radius: 20px;
+      }
+      .employee-column:last-child {
+        border-bottom-right-radius: 20px;
+      }
+    }
+  }
+}
+
+@keyframes gradientPan {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.appointment-block {
+  position: absolute;
+  top: 0;
+  color: #fff;
+  padding: 4px;
+  border-radius: 10px;
+  background: linear-gradient(60deg, #8c0055, #6a0040, #4a0028, #2d001a, #8c0055);
+  background-size: 300% 300%;
+  animation: gradientPan 15s ease infinite;
+  box-shadow: 0px -20px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1);
+  cursor: move;
+  box-sizing: border-box;
+  overflow: hidden;
+  z-index: 10;
+  padding-bottom: 48px; // da ne preklapa sadržaj
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  
+  &.paid {
+    background: linear-gradient(60deg, #2e7d32, #1b5e20, #0d4f0d, #003300, #2e7d32);
+    background-size: 300% 300%;
+    animation: gradientPan 15s ease infinite;
+    cursor: not-allowed;
+    opacity: 0.9;
+    border-color: rgba(46, 125, 50, 0.3);
+  }
+  
+  &.fiscalized {
+    background: linear-gradient(60deg, #1565c0, #0d47a1, #0a3d91, #002171, #1565c0);
+    background-size: 300% 300%;
+    animation: gradientPan 15s ease infinite;
+    cursor: not-allowed;
+    opacity: 0.9;
+    border-color: rgba(21, 101, 192, 0.3);
+  }
+}
+
+.appointment-block[data-dragging="true"] {
+  z-index: 1000 !important;
+  transition: none !important;
+}
+
+.appointment-block:not([data-dragging="true"]) {
+  transition: transform 0.1s ease, left 0.2s, width 0.2s;
+}
+
+.appointment-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  justify-content: flex-start;
+  position: relative;
+  height: 100%;
+  padding-bottom: 40px; // Ostavi prostor za dugme
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(2px);
+  border-radius: 8px;
+  padding: 8px;
+  margin: 2px;
+}
+
+.appointment-info .service {
+  font-size: 1.2em;       
+  font-weight: bold;      
+  margin-bottom: 4px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+}
+
+.appointment-info .time {
+  font-size: 0.9em;       
+  margin-bottom: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+}
+
+.appointment-info .date {
+  font-size: 0.9em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+}
+
+.appointment-info .pay-btn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(5px);
+  color: #fff !important;
+  font-weight: bold;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.20);
+  transition: all 0.2s ease;
+  min-height: 28px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75em;
+  white-space: nowrap;
+  max-width: 80px;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.30);
+  }
+  
+  .mat-icon {
+    margin-right: 4px;
+    color: #fff !important;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+  
+  &.paid,
+  &:disabled {
+    background: rgba(0, 0, 0, 0.5) !important;
+    color: #fff !important;
+    cursor: default;
+    opacity: 0.85;
+    pointer-events: none;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  background: transparent;
+  z-index: 1001; /* above appointment content */
+}
+
+.custom-appointment-dialog .mat-dialog-container {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.custom-backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.time-slot.unavailable {
+  pointer-events: none;
+  cursor: not-allowed;
+  border: none;
+}
+.employee-column.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.not-working-overlay {
+  cursor: not-allowed;
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: #333;
+  opacity: 0.8;
+  z-index: 1;
+  pointer-events: none !important; // overlay ne sme blokirati klik
+  border-radius: 20px;
+}
+
+.schedule-grid,
+.grid-body,
+.employee-columns,
+.employee-column,
+.time-slot,
+.appointment-block {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+.resizing .time-slot {
+  pointer-events: none !important;
+  cursor: ns-resize !important;
+}
+
+.loading-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  animation: fadeIn 0.5s;
+}
+
+.spinner {
+  width: 64px;
+  height: 64px;
+  border: 8px solid #8c0055;
+  border-top: 8px solid #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.loading-text {
+  color: #fff;
+  font-size: 1.2em;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// Responzivni stilovi za appointment blokove
+.appointment-block {
+  // Za veoma kratke termine - skrivanje teksta dugmeta
+  &[style*="height: 40px"], 
+  &[style*="height: 50px"],
+  &[style*="height: 60px"] {
+    .appointment-info .pay-btn {
+      font-size: 0.65em;
+      padding: 2px 6px;
+      min-height: 24px;
+      max-width: 60px;
+      
+      .mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        margin-right: 2px;
+      }
+    }
+  }
+  
+  // Za kratke termine - skrivanje datuma
+  &[style*="height: 70px"],
+  &[style*="height: 80px"] {
+    .appointment-info .date {
+      display: none;
+    }
+  }
+}

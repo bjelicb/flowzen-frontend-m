@@ -1,0 +1,183 @@
+<mat-card class="appointments-container" [class.resizing]="isResizing">
+  <!-- Toolbar -->
+  <mat-toolbar class="toolbar-custom">
+    <div class="toolbar-item title-container" [@titleAnim]="toolbarState">
+      <span class="title" *ngIf="selectedDate"><mat-icon>schedule</mat-icon>Raspored za zaposlene</span>
+    </div>
+    
+    <!-- Facility Selector -->
+    <div class="toolbar-item facility-container" [@dateAnim]="toolbarState">
+      <mat-form-field appearance="outline" class="facility-selector">
+        <mat-label>Izaberi objekat</mat-label>
+        <mat-select [formControl]="facilityControl">
+          <mat-option *ngFor="let facility of facilities" [value]="facility._id">
+            {{ facility.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="work-hours-display" *ngIf="currentFacility">
+        <mat-icon>access_time</mat-icon>
+        <span>{{ workHoursString }}</span>
+      </div>
+    </div>
+    
+    <div class="toolbar-item datepicker-container" [@dateAnim]="toolbarState">
+      <button mat-icon-button (click)="shiftDate(-1)" style="margin-right: 20px; cursor: pointer;">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <mat-form-field appearance="outline" class="date-picker">
+        <mat-label>Izaberi datum</mat-label>
+        <input matInput [matDatepicker]="picker" [formControl]="dateControl"
+          (dateChange)="onDateChange($event.value)" />
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+      <button mat-icon-button (click)="shiftDate(1)" style="margin-left: 20px; cursor: pointer">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <button mat-raised-button (click)="setToday()" style="margin-left: 16px; color: white;">
+        <mat-icon>today</mat-icon>
+        Danas
+      </button>
+      <button mat-raised-button color="accent" (click)="openBulkAppointments()" style="margin-left: 50px;">
+        <mat-icon>file_upload</mat-icon>
+        Masovni unos termina
+      </button>
+    </div>
+  </mat-toolbar>
+
+  <ng-container *ngIf="loading">
+    <div class="loading-spinner-container">
+      <div class="spinner"></div>
+      <div class="loading-text">Učitavanje rasporeda...</div>
+    </div>
+  </ng-container>
+  <ng-container *ngIf="!loading && selectedDate && animateSchedule">
+    <div class="schedule-grid" [@scheduleChange]="selectedDate.getTime()">
+      <!-- Zaglavlje -->
+      <div class="grid-header">
+        <div class="time-header-cell"></div>
+        <div class="employee-header-cell" *ngFor="let emp of employees">
+          <img [src]="emp.avatarUrl ? emp.avatarUrl : 'user-profile-image.png'" alt="{{ emp.firstName }}" class="avatar"
+               (error)="emp.avatarUrl = 'assets/default-avatar.png'" />
+          <span class="employee-name">{{ emp.firstName }}</span>
+        </div>
+      </div>
+
+      <!-- Telo grida -->
+      <div class="grid-body" #gridBody [style.height.px]="gridBodyHeight">
+        <!-- Horizontalne linije -->
+        <div class="horizontal-lines">
+          <ng-container *ngFor="let t of timeSlots; let i = index">
+            <div
+              class="horizontal-line"
+              *ngIf="i < slotCount - 1"
+              [style.top.%]="(i / (slotCount - 1)) * 100"
+            ></div>
+          </ng-container>
+        </div>
+
+        <!-- Vremenska kolona -->
+        <div class="time-column" #timeColumn>
+          <ng-container *ngFor="let t of timeSlots; let i = index">
+            <div
+              class="time-cell"
+              [style.top.%]="(i / (slotCount - 1)) * 100"
+              [style.transform]="'translateY(-100%)'"
+            >
+              <span>{{ formatTime(t) }}</span>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Kolone zaposlenih -->
+        <div class="employee-columns" #employeeColumns>
+          <div class="employee-column"
+               *ngFor="let emp of employees; let i = index"
+               [attr.data-employee-id]="emp._id"
+               [ngClass]="{ 'not-working': isColumnDisabled(emp) }"
+               [class.disabled]="isColumnDisabled(emp)"
+               #firstEmployeeColumn=""
+               (click)="!isColumnDisabled(emp) && onEmptyColumnClick(emp, $event)">
+
+            <!-- OVERLAYI PRVI! -->
+            <div *ngIf="emp.workingShift"
+                 class="not-working-overlay"
+                 [style.top.%]="0"
+                 [style.height.%]="calculateOverlayTop(emp.workingShift.startHour)">
+            </div>
+            <div *ngIf="emp.workingShift"
+                 class="not-working-overlay"
+                 [style.top.%]="calculateOverlayTop(emp.workingShift.endHour)"
+                 [style.height.%]="calculateOverlayHeight(emp.workingShift.endHour, workEndHour)">
+            </div>
+
+            <!-- SVE OSTALO POSLE OVERLAYA -->
+            <ng-container *ngFor="let t of timeSlots">
+              <div
+                class="time-slot"
+                [class.unavailable]="!isSlotAvailable(emp, t)"
+                [matTooltip]="formatTime(t)"
+                [matTooltipDisabled]="
+                  isDragging ||
+                  isResizing ||
+                  !isSlotAvailable(emp, t) ||
+                  isSlotCovered(emp, t)
+                "
+                matTooltipPosition="right"
+                [style.pointerEvents]="
+                  isSlotAvailable(emp, t) && !isSlotCovered(emp, t) ? 'auto' : 'none'
+                "
+                [style.height.px]="gridBodyHeight / slotCount"
+                ></div>
+            </ng-container>
+
+            <div class="appointment-block"
+              *ngFor="let ap of getAppointmentsForEmployee(emp._id || ''); trackBy: trackByAppointmentId"
+              [attr.data-appointment-id]="ap.id"
+              [style.top.%]="calculateTop(ap.startHour)"
+              [style.height.%]="calculateHeight(ap.startHour, ap.endHour)"
+              [style.width.%]="100 / getAppointmentOverlapCount(ap, emp._id || '')"
+              [style.left.%]="getAppointmentOverlapIndex(ap, emp._id || '') * (100 / getAppointmentOverlapCount(ap, emp._id || ''))"
+              [matTooltip]="formatTime(ap.startHour) + ' - ' + formatTime(ap.endHour)"
+              matTooltipPosition="above"
+              [matTooltipDisabled]="isDragging"
+              [class.paid]="ap.paid"
+              [class.fiscalized]="ap.sale?.fiscal?.status === 'success'"
+              (click)="onAppointmentClick(ap, $event); $event.stopPropagation()"
+              >
+              <div class="appointment-info">   
+                <div class="service">{{ ap.service.name }}</div>
+                <div>Klijent : {{ap.client.firstName}} {{ap.client.lastName}}</div>
+                <div class="time">
+                  {{ formatTime(ap.startHour) }} - {{ formatTime(ap.endHour) }}
+                </div>
+                <div class="date">
+                  {{ ap.date | date : "dd MMM yyyy" }}
+                </div>
+            <button
+              mat-button
+              class="pay-btn"
+              [ngClass]="{ 'paid': ap.paid, 'fiscalized': ap.sale?.fiscal?.status === 'success' }"
+              [disabled]="ap.paid || ap.sale?.fiscal?.status === 'success'"
+              (click)="onPayAppointment(ap, $event)"
+            >
+              <mat-icon>point_of_sale</mat-icon>
+              {{ ap.paid ? (ap.sale?.fiscal?.status === 'success' ? 'Fisk.' : 'Napl.') : 'Naplati' }}
+            </button>
+              </div>
+              <div class="resize-handle" 
+                   *ngIf="!ap.paid && ap.sale?.fiscal?.status !== 'success'"
+                   (click)="$event.stopPropagation()" 
+                   (mousedown)="onResizeStart($event, ap)" 
+                   (touchstart)="onResizeStart($event, ap)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+  
+  <!-- Hidden POS Checkout Component for Angular compiler detection -->
+  <app-pos-checkout *ngIf="false" style="display: none !important;"></app-pos-checkout>
+</mat-card>
